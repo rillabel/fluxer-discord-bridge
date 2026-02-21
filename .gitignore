@@ -1,0 +1,7 @@
+.env
+Bridges.yaml
+docker-compose.yml
+Dockerfile
+.dockerignore
+.npmignore
+./db/
