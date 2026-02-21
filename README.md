@@ -9,7 +9,7 @@
 ### Setup
 1. Follow the steps on [the Docker website](https://www.docker.com/) to install Docker Desktop.
 2. Create a folder for the bot to store the information about your bridges. Note the path to this file, you'll need it in a moment.
-3. Download the provided docker-compose.example.yml, and place it somewhere you'll remember it. Rename it to docker-compose.yml.
+3. Download the provided [docker-compose.example.yaml](https://github.com/rillabel/fluxer-discord-bridge/blob/ab0f4a8b320f31da287de7f2cc5748aa8f8ffc54/docker-compose.example.yml), and place it somewhere you'll remember it. Rename it to docker-compose.yml.
 4. In your docker-compose.yml, fill in the tokens for your Fluxer and Discord bots, as well as the path to the database folder you just created.
    Change the CMD_PREFIX setting if you'd like to use something other than the default.
 5. Note the path to your docker-compose.yml, since it's required to run the bot.
@@ -19,5 +19,14 @@ To start your bot, open your command line and run `docker compose -f {PATH_TO_YO
 To stop it, run `docker compose -f {PATH_TO_YOUR_DOCKER_COMPOSE} down`.  
 Check that your bot is working by typing `brdg;help` (or use your custom prefix if you set one).  
 
-## Installation with Source Code
-TBA
+## Installation with NodeJS
+
+### Setup
+1. Download and install NodeJS from [their website](https://nodejs.org/en/download)
+2. Download and extract the most recent source code from [the Releases page](https://github.com/rillabel/fluxer-discord-bridge/releases). Note the path to your folder.
+3. Copy the example.env file and name the new file .env. Fill in your .env with your Fluxer and Discord bot tokens. Feel free to set a custom command prefix while you're here.
+
+### Testing
+To start your bot, open your command line and run `cd {PATH_TO_YOUR_BOT_FOLDER} && node --env-file=.env Bot`.  
+To stop it, close your command terminal.  
+Check that your bot is working by typing `brdg;help` (or use your custom prefix if you set one).  
