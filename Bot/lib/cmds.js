@@ -1,4 +1,4 @@
-const requireAuth = ['listen', 'drop', 'mate', 'divorce']
+const requireAuth = ['listen', 'drop', 'mate', 'divorce', 'crsh']
 function listen(bdg, orig, cid, args) {
     if (orig == 'Fluxer') {
         args.map((id) => {
@@ -60,14 +60,14 @@ function divorce(bdg, orig, cid, args) {
 }
 
 function help() {
-    return "### [PRFX]listen [Channel ID 1], [Channel ID 2], [Channel ID 3]...\n" +
-    "Subscribe to a list of channels\n" +
-    "### [PRFX]drop [Channel ID 1], [Channel ID 2], [Channel ID 3]...\n" +
-    "Unsubscribe from a list of channels\n" +
-    "### [PRFX]mate [Channel ID]\n" +
-    "Link with two channels\n" +
-    "### [PRFX]divorce [Channel ID]\n" +
-    "Unlink another channel"
+    return "### [PRFX] listen [Channel ID 1], [Channel ID 2], [Channel ID 3]...\n" +
+    "Subscribe the channel this is sent in to a list of channels\n" +
+    "### [PRFX] drop [Channel ID 1], [Channel ID 2], [Channel ID 3]...\n" +
+    "Unsubscribe the channel this is sent in from a list of channels\n" +
+    "### [PRFX] mate [Channel ID]\n" +
+    "Link the channel this is sent in with another channel\n" +
+    "### [PRFX] divorce [Channel ID]\n" +
+    "Unlink another channel and the channel this is sent in"
 }
 
 export function parse(auth, bdg, orig, cid, msg) {
@@ -79,5 +79,6 @@ export function parse(auth, bdg, orig, cid, msg) {
     if (cmd[0] == 'mate') {return mate(bdg, orig, cid, cmd.slice(1))}
     if (cmd[0] == 'divorce') {return divorce(bdg, orig, cid, cmd.slice(1))}
     if (cmd[0] == 'help') {return help()}
-    return "Unknown command. Use [PRFX]help";
+    if (cmd[0] == 'crsh') {throw new Error("Crashed. Scary!")}
+    return "Unknown command. Use [PRFX] help";
 }

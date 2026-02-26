@@ -7,6 +7,13 @@ import * as flux from './lib/flux_funcs.js'
 import * as cmd from './lib/cmds.js'
 
 const PREFIX = process.env.CMD_PREFIX ?? 'brdg;'
+if (!process.env.FLUXER_TOKEN || !process.env.DISCORD_TOKEN) {
+    throw new Error("One or more tokens missing! Please set them in your environment variables.", {cause: 'MISSING_TOKENS'})
+}
+
+const fluxBot = new FClient({ intents: 0 });
+const discBot = new DClient({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages]});
+
 let bridges;
 try {
     const bridgefile = parse(await readFile('./db/Bridges.yaml', 'utf8'), {schema: 'failsafe'}); console.log(`Bridges loaded!`)
@@ -19,13 +26,10 @@ catch {
     writeFile('./db/Bridges.yaml', stringify(bridges))
 }
 
-const fluxBot = new FClient({ intents: 0 });
-const discBot = new DClient({ intents: [GatewayIntentBits.GuildMembers, GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages]});
+fluxBot.once('ready', () => console.log(`Fluxer logged in as ${fluxBot.user.username}#${fluxBot.user.discriminator}`));
 
-fluxBot.once(FEvents.Ready, () => console.log(`Fluxer logged in as ${fluxBot.user.username}#${fluxBot.user.discriminator}`));
-
-fluxBot.on(FEvents.MessageCreate, async (msg) => {
-    if (msg.content.startsWith(PREFIX) && !msg.author.bot) {
+fluxBot.on('messageCreate', async (msg) => {
+     if (msg.content.startsWith(PREFIX) && !msg.author.bot) {
         const stripped = msg.content.replace(PREFIX, "");
         const mem = await msg.guild.members.get(msg.author.id)
         const authed = mem.permissions.has(PermissionFlags.ManageChannels);
@@ -63,7 +67,7 @@ fluxBot.on(FEvents.MessageCreate, async (msg) => {
 
 discBot.once('clientReady', (data) => console.log(`Discord logged in as ${data.user.tag}!`));
 
-discBot.on("messageCreate", async (msg) => {
+discBot.on('messageCreate', async (msg) => {
     if (msg.content.startsWith(PREFIX) && !msg.author.bot) {
         const stripped = msg.content.replace(PREFIX, "");
         const authed = msg.member.permissions.has(PermissionsBitField.Flags.ManageChannels);
@@ -102,16 +106,37 @@ discBot.on("messageCreate", async (msg) => {
     }
 })
 
-process.on('uncaughtException', (e) => {
-    console.log(new Date().toTimeString().match(/\S+/)[0], 'Ran into an error:', e.message, "\nBoth bots will attempt to restart.")
-    discBot.destroy();
-    fluxBot.destroy();
-    setTimeout(() => {
-        discBot.login(process.env.DISCORD_TOKEN);
-        fluxBot.login(process.env.FLUXER_TOKEN);
-    }, 3000)
-})
-
 discBot.login(process.env.DISCORD_TOKEN);
 fluxBot.login(process.env.FLUXER_TOKEN);
+
+// ERROR HANDLING DIVIDER FOR RILLABEL EASIER READING
+
+let handling = 0;
+async function reset (attempts) {
+    const delay = (attempts <= 3)? 0 : attempts - 3;
+    try {
+        await fluxBot.destroy()
+        await discBot.destroy()
+        await discBot.login(process.env.DISCORD_TOKEN)
+        await fluxBot.login(process.env.FLUXER_TOKEN)
+        console.log('Restarted successfully!')
+        handling = 0
+    }
+    catch (e) {
+        console.error('Ran into an issue while restarting:', e.message, '\nAttempting again in', delay, 'minutes.');
+        ++attempts;
+        setTimeout(() => {reset(attempts)}, 60000 * delay)
+    }
+
+}
+
+process.on('uncaughtException', async (e) => {
+    if (handling == 0) {
+        console.error(new Date().toTimeString().match(/\S+/)[0], 'Ran into an error:', e.message, "\nBoth bots will attempt to restart.")
+        handling = 1
+        setTimeout(() => {reset(0)}, 5000)
+    }
+})
+
+
 
